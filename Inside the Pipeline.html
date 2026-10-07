@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inside the Pipeline</title>
+<style>
+:root{--bg:#f1faf4;--card:#fff;--ink:#12261c;--mute:#4a6355;--g:#0d9460;--in:#1d5fd1;--mo:#1f9d55;--out:#6a2fb8;--or:#e8890c;--hero:#0d7a52;--line:#cfe8da;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a14;--card:#16281f;--ink:#e8f5ee;--mute:#9bb8a8;--line:#2a4639;--hero:#0a5c3e;--in:#6fa3ff;--mo:#5fd48c;--out:#c09bff}}
+:root[data-theme="dark"]{--bg:#0e1a14;--card:#16281f;--ink:#e8f5ee;--mute:#9bb8a8;--line:#2a4639;--hero:#0a5c3e;--in:#6fa3ff;--mo:#5fd48c;--out:#c09bff}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+.deck{height:100%;display:flex;flex-direction:column}
+.slides{flex:1;position:relative;min-height:0}
+section{position:absolute;inset:0;display:none;padding:4vh 6vw;overflow-y:auto;flex-direction:column;justify-content:center;gap:2vh}
+section.on{display:flex}
+h1{font-size:clamp(2rem,6vw,4rem);margin:0}h2{font-size:clamp(1.5rem,3.8vw,2.5rem);margin:0;color:var(--g)}
+p,li{font-size:clamp(1rem,2vw,1.4rem);line-height:1.5;margin:0}ul{margin:0;padding-left:1.2em;display:grid;gap:1vh}
+.tag{display:inline-block;background:var(--g);color:#fff;border-radius:99px;padding:.25em .9em;font-size:clamp(.8rem,1.5vw,1rem);font-weight:600;width:fit-content}
+.hero{background:var(--hero);color:#fff}.hero h2,.hero p{color:#fff}
+.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:1.2em 1.4em}
+.row{display:flex;gap:2vw;align-items:stretch;flex-wrap:wrap}.row>*{flex:1 1 200px}
+.st{border-width:3px;text-align:center}.st b{display:block;font-size:clamp(1.2rem,2.6vw,1.9rem);letter-spacing:.05em}
+.st span{color:var(--mute);font-size:clamp(.9rem,1.7vw,1.15rem)}
+.i{border-color:var(--in)}.i b{color:var(--in)}.m{border-color:var(--mo);border-style:dashed}.m b{color:var(--mo)}.o{border-color:var(--out)}.o b{color:var(--out)}
+.ar{align-self:center;flex:0 0 auto;font-size:2rem;color:var(--g)}
+.note{border-left:6px solid var(--or)}
+nav{display:flex;align-items:center;gap:12px;padding:10px 6vw;background:var(--card);border-top:1px solid var(--line)}
+nav button{background:var(--g);color:#fff;border:0;border-radius:10px;padding:.6em 1.2em;font-size:1rem;cursor:pointer}
+nav button:disabled{opacity:.35}nav span{flex:1;text-align:center;color:var(--mute)}
+
+.opts{display:grid;gap:1vh}.opts button,.pair button{background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:12px;padding:.7em 1em;font-size:clamp(1rem,1.9vw,1.3rem);text-align:left;cursor:pointer;font-family:inherit}
+.opts button.ok,.pair button.ok{background:rgba(31,157,85,.3);border-color:#1f9d55}.opts button.bad,.pair button.bad{background:rgba(220,50,50,.28);border-color:#d33}
+.pair button.sel{border-color:var(--or)}.pair button.done{opacity:.6}.pair{display:grid;grid-template-columns:1fr 1fr;gap:1vh 2vw}
+.fb{color:var(--mute);min-height:1.5em}.badge{display:inline-block;background:var(--or);color:#fff;border-radius:8px;padding:.1em .6em;font-weight:700;width:fit-content}
+.wd{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5vh 1.5vw}.wd .card p{font-size:clamp(.95rem,1.8vw,1.25rem)}.wd b{font-size:clamp(1.2rem,2.4vw,1.7rem)}
+.wu{display:flex;align-items:center;justify-content:space-between;gap:1vw;flex-wrap:wrap}.wu>p{flex:1 1 260px}.wu .opts{grid-auto-flow:column;gap:1vw}
+</style></head><body>
+<div class="deck"><div class="slides" id="s">
+
+<section class="hero on">
+<span class="tag" style="background:#ffffff33">Grade 8 · Main Course · Term 1 · Week 2 · Core</span>
+<h1>Inside the Pipeline</h1>
+<p>Every AI tool you use turns an input into an output using a model in the middle. Today you open up that shape so you can explain, and later judge, how any tool works. About 45 minutes.</p>
+<div class="card" style="color:var(--ink)"><p><b>Lesson route:</b> 1 Name the three stages · 2 Give each part its job · 3 The model is not magic</p></div>
+</section>
+
+<section><span class="badge">WARM-UP · 5 min</span><h2>Be the spam filter</h2><p>You are the AI! Decide for each message: spam or not spam?</p><div class="card wu"><p>“WIN a FREE prize now!!! Click here”</p><div class="opts"><button data-fb="Spam: a “free prize”, lots of !!! and a link are common clues." data-ok=1>Spam</button><button data-fb="Spam: a “free prize”, lots of !!! and a link are common clues.">Not spam</button></div></div><div class="card wu"><p>“Are you coming to football on Friday?”</p><div class="opts"><button data-fb="Not spam: normal wording from someone you know.">Spam</button><button data-fb="Not spam: normal wording from someone you know." data-ok=1>Not spam</button></div></div><div class="card wu"><p>“Your parcel is waiting. Pay 5 AED to release it: bit.ly/x7”</p><div class="opts"><button data-fb="Spam: urgency, a payment request and a short link." data-ok=1>Spam</button><button data-fb="Spam: urgency, a payment request and a short link.">Not spam</button></div></div><div class="card wu"><p>“Homework is due Thursday. Bring your notebook.”</p><div class="opts"><button data-fb="Not spam: a normal school message.">Spam</button><button data-fb="Not spam: a normal school message." data-ok=1>Not spam</button></div></div><p class="fb"></p>
+<div class="card note"><p><b>Talk to your partner:</b> What did you look at to decide? What did you already know that helped? Which part was the <b>input</b>, which was the <b>model</b>, and what was your <b>output</b>?</p></div></section>
+<section><span class="badge">LEARNING INTENTIONS</span><h2>We are learning to…</h2><div class="card"><ol style="margin:0;padding-left:1.3em;display:grid;gap:1.5vh"><li><b>LI 1.</b> Describe the stages an AI system uses to turn an input into an output.</li><li><b>LI 2.</b> Explain how a specific input becomes an output, using the correct vocabulary.</li><li><b>LI 3.</b> Use the terms <i>input</i>, <i>model</i> and <i>output</i> to judge whether an AI solution is working well.</li></ol></div><p style="color:var(--mute)">Previously: you compared two outputs with evidence. Now: the machinery that made them.</p></section>
+<section><span class="badge">SUCCESS CRITERIA</span><h2>I can…</h2><p>How will I know I have got it? Tap a criterion when you feel secure.</p><div class="opts" style="gap:1.5vh"><button onclick="this.classList.toggle('ok')"><b style="color:var(--g)">LI 1</b> · I can name the stages an AI system uses to turn an input into an output.</button><button onclick="this.classList.toggle('ok')"><b style="color:var(--g)">LI 2</b> · I can trace a worked example and explain to a partner how the input became the output.</button><button onclick="this.classList.toggle('ok')"><b style="color:var(--g)">LI 3</b> · I can use words like <i>input</i>, <i>model</i> and <i>output</i> correctly.</button><button onclick="this.classList.toggle('ok')"><b style="color:var(--g)">LI 3</b> · I can say how these words help me evaluate a solution.</button></div></section>
+
+<section><span class="tag">Words to know</span><h2>Key vocabulary</h2><div class="wd"><div class="card st i" style="text-align:left"><b>Input</b><p>the data that goes into the system, such as text, an image or a sensor reading</p></div><div class="card st m" style="text-align:left"><b>Model</b><p>the trained process in the middle that turns an input into an output using patterns learned from data</p></div><div class="card st o" style="text-align:left"><b>Output</b><p>what comes out: a label, a prediction or a new piece of content</p></div><div class="card st " style="text-align:left"><b>Pipeline</b><p>the stages joined in order, from input through the model to output</p></div><div class="card st " style="text-align:left"><b>Evaluate</b><p>to judge how good an output is by checking it against the task and a trusted source</p></div></div><p style="color:var(--mute)">Use these words in your explanations today.</p></section>
+<section>
+<span class="tag">Part 1</span><h2>One pipeline, three stages</h2>
+<div class="row">
+<div class="card st i"><b>INPUT</b><span>The data that goes in: text, an image or a sensor reading</span></div><div class="ar">➜</div>
+<div class="card st m"><b>MODEL</b><span>Trained on past examples; turns the input into a likely result</span></div><div class="ar">➜</div>
+<div class="card st o"><b>OUTPUT</b><span>What comes out: a label, a prediction or new content</span></div></div>
+<div class="card note"><p><b>Pipeline</b> = the stages joined in order. One prediction runs forward, but <b>building</b> an AI is a loop: test, evaluate, feed back, retrain.</p></div>
+</section>
+
+<section><span class="badge">DO IT · Objective 1</span><h2>Put the pipeline in order</h2><p>Tap the steps in the order data flows through one prediction.</p>
+<div class="opts" id="ord"><button data-n=1>An input goes in: text, an image or a reading</button><button data-n=3>An output comes out: a label or a prediction</button><button data-n=2>A trained model turns it into a likely result</button><button data-n=4>You evaluate the output against the task</button></div><p class="fb" id="ordfb"></p></section>
+<section><span class="badge">AI EVALUATORS · CASE 1</span><h2>The Photo Search</h2><div class="card"><p>A photo-search app takes a picture and returns the label “falcon”. Which sequence shows the pipeline for that single prediction?</p></div><div class="opts"><button data-fb="No: a model sits in between.">A. Just an input and an output, with no model in between.</button><button data-fb="No: the input comes first.">B. The model runs first, then the input photo, then the output label.</button><button data-fb="No: the label is the result, not the start.">C. Output the label first, then the model, then work out the input.</button><button data-fb="Correct! Photo in, model predicts, label out." data-ok=1>D. Input the photo, the model predicts, the output is the label.</button></div><p class="fb"></p></section>
+<section>
+<span class="tag">Part 2</span><h2>Trace a worked example</h2>
+<p>Tracing = following one item of data through each stage and naming what happens to it.</p>
+<div class="row">
+<div class="card st i"><b>INPUT</b><span>A photo of a bird</span></div><div class="ar">➜</div>
+<div class="card st m"><b>MODEL</b><span>Predicts using patterns learned from many labelled photos</span></div><div class="ar">➜</div>
+<div class="card st o"><b>OUTPUT</b><span>The label “falcon”</span></div></div>
+<div class="card"><p><b>Sentence stem:</b> “The input was ___, which the model ___, so the output was ___ because ___.”</p></div>
+</section>
+
+<section><span class="badge">DO IT · Objective 2</span><h2>Match the part to its job</h2><p>Tap a part on the left, then its job on the right.</p>
+<div class="pair" id="mt"><button data-m=o data-l=1>Output</button><button data-m=m>the trained process that predicts</button><button data-m=m data-l=1>Model</button><button data-m=p>the stages joined in order</button><button data-m=i data-l=1>Input</button><button data-m=o>the label or prediction returned</button><button data-m=p data-l=1>Pipeline</button><button data-m=i>the data that goes in</button></div><p class="fb" id="mtfb"></p></section>
+<section><span class="badge">AI EVALUATORS · CASE 2</span><h2>The Strange Reading</h2><div class="card"><p>A translation app meets a rare, blurry word and returns a strange output. Which stage best explains why?</p></div><div class="opts"><button data-fb="No: the output stage only shows what the model produced.">A. The output stage, because it invented an answer on its own.</button><button data-fb="No: it predicts from patterns; it does not understand.">B. None of the stages, since a translation app truly understands us.</button><button data-fb="No: the screen isn’t part of the pipeline.">C. The screen, because it was too bright to read.</button><button data-fb="Correct! It predicts from patterns, so odd inputs mislead it." data-ok=1>D. The model: it predicts from patterns, so odd inputs mislead it.</button></div><p class="fb"></p></section>
+<section>
+<span class="tag">Part 3</span><h2>The model is not magic</h2>
+<div class="card"><ul>
+<li>It <b>predicts</b> from learned patterns. It does not think or understand.</li>
+<li>An unusual or unclear input can lead to a strange output.</li>
+<li>A confident-looking output is not always correct, so <b>check it, don’t trust it</b>.</li></ul></div>
+<div class="card note"><p><b>Case: The Strange Reading.</b> A translation app meets a rare, blurry word and returns a strange output. Which stage best explains why, and what would you change first: the input, the model, or nothing?</p></div>
+</section>
+
+<section><span class="badge">DO IT · Objective 3</span><h2>Which statements are true?</h2><p>Tap the THREE true statements about an AI pipeline.</p>
+<div class="opts" id="tf"><button data-fb="Not true: confident output can still be wrong.">A confident-looking output is always correct.</button><button data-fb="Not true: it predicts, it does not understand.">The model thinks and understands meaning like a person.</button><button data-ok=1 data-fb="True!">The model predicts a likely output from learned patterns.</button><button data-ok=1 data-fb="True!">An unclear input can lead to a strange output.</button><button data-fb="Not true: the input always comes first.">In one prediction the output comes before the input.</button><button data-ok=1 data-fb="True!">Developing a model is a loop of test, evaluate and retrain.</button></div><p class="fb"></p></section>
+<section><span class="badge">AI EVALUATORS · CASE 3</span><h2>A Different Output</h2><div class="card"><p>A team wants the same tool to give a better output. Which stage should they change first?</p></div><div class="opts"><button data-fb="Correct! A clearer input can shift the output without retraining." data-ok=1>A. The input: a clearer input shifts the output without retraining.</button><button data-fb="No: retraining is not the only way the output moves.">B. The model, since retraining is the only way output moves.</button><button data-fb="No: a confident tool is not always right.">C. Nothing, since a confident tool always gives the best answer.</button><button data-fb="No: hand-editing hides the problem, it doesn’t fix the pipeline.">D. The output, editing the answer by hand and calling it fixed.</button></div><p class="fb"></p></section>
+<section>
+<span class="tag">Activity</span><h2>AI Evaluators: trace it with a partner</h2>
+<div class="card"><ul>
+<li>Study the worked example on the board.</li>
+<li>Write down the <b>input</b>: the exact data that went in.</li>
+<li>Describe what the <b>model</b> does to it.</li>
+<li>Write down the <b>output</b>: the exact result that came out.</li>
+<li>Explain to your partner how the input became the output, in order.</li>
+<li>Check one output against the task and a trusted source. Does it really answer it?</li></ul></div>
+<p style="color:var(--mute)">No board demo? Use simulated-AI cards: a “model” envelope holds a fixed rule; post an input card in and it returns the matching output card.</p>
+</section>
+
+<section class="hero">
+<h2>Summary</h2>
+<div class="card" style="color:var(--ink)"><ul>
+<li>Almost any AI tool is a pipeline: <b>input, model, output</b>.</li>
+<li>One prediction runs one way; development runs in a loop.</li>
+<li>The model predicts from learned patterns. It does not think.</li>
+<li>Naming the stages lets you find where a result was shaped and evaluate it.</li></ul></div>
+<p><b>Reflect:</b> “The stage I understand best is … because …”</p>
+<p>Next in the Lab: build a small pipeline and change one factor to watch the output move.</p>
+</section>
+
+</div>
+<nav><button id="p">◀ Back</button><span id="c"></span><button id="n">Next ▶</button></nav></div>
+<script>
+var s=[].slice.call(document.querySelectorAll("section")),i=0,p=document.getElementById("p"),n=document.getElementById("n"),c=document.getElementById("c");
+function go(k){i=Math.max(0,Math.min(s.length-1,k));s.forEach(function(e,j){e.classList.toggle("on",j===i)});c.textContent=(i+1)+" / "+s.length;p.disabled=i===0;n.disabled=i===s.length-1;s[i].scrollTop=0}
+p.onclick=function(){go(i-1)};n.onclick=function(){go(i+1)};
+document.addEventListener("keydown",function(e){if(e.key==="ArrowRight"||e.key===" ")go(i+1);if(e.key==="ArrowLeft")go(i-1)});
+document.querySelectorAll(".opts:not(#ord) button").forEach(function(b){b.onclick=function(){var ok=b.hasAttribute("data-ok");b.classList.add(ok?"ok":"bad");b.closest("section").querySelector(".fb").textContent=b.dataset.fb||""}});
+var ob=document.querySelectorAll("#ord button"),nx=1;ob.forEach(function(b){b.onclick=function(){var f=document.getElementById("ordfb");if(+b.dataset.n===nx){b.classList.add("ok");b.textContent=nx+". "+b.textContent;nx++;f.textContent=nx>4?"Correct! Input, model, output, then you evaluate.":"Good, what comes next?"}else{b.classList.add("bad");setTimeout(function(){b.classList.remove("bad")},700);f.textContent="Not yet. Think about what happens next in one prediction."}}});
+var sel=null,mc=0;document.querySelectorAll("#mt button").forEach(function(b){b.onclick=function(){if(b.classList.contains("ok"))return;var f=document.getElementById("mtfb");if(b.dataset.l){if(sel)sel.classList.remove("sel");sel=b;b.classList.add("sel");return}if(!sel){f.textContent="Tap a part on the left first.";return}if(sel.dataset.m===b.dataset.m){sel.classList.remove("sel");sel.classList.add("ok");b.classList.add("ok");sel=null;mc++;f.textContent=mc===4?"All matched!":"Match!"}else{b.classList.add("bad");setTimeout(function(){b.classList.remove("bad")},700);f.textContent="Not that one. Try again."}}});
+go(0);
+</script></body></html>
